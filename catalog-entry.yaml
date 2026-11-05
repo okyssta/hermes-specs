@@ -1,6 +1,6 @@
 name: specs
 repo: https://github.com/okyssta/hermes-specs
-# sha: pending — filled in by the catalog release workflow once the repository tag exists
+sha: 52b95585913752b69b2b308b848b4f8cda647b22
 description: >-
   Hermes learns what this machine can actually do, once, and remembers it. Specs
   measures OS/kernel/arch, CPU count and model, total and available RAM, GPU and
