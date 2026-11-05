@@ -1,0 +1,42 @@
+name: specs
+repo: https://github.com/okyssta/hermes-specs
+# sha: pending — filled in by the catalog release workflow once the repository tag exists
+description: >-
+  Hermes learns what this machine can actually do, once, and remembers it. Specs
+  measures OS/kernel/arch, CPU count and model, total and available RAM, GPU and
+  usable VRAM, free disk, the init system and container status, and the installed
+  version of nineteen developer tools; it caches a compact capability card and
+  freezes it into every new session's system prompt (1200 characters by default),
+  so a plan that assumes a GPU, a Docker daemon, brew or 32 GB of RAM is checked
+  against the machine before it is written. machine_specs returns the fact sheet
+  with how every value was obtained, machine_can returns a labelled heuristic
+  feasibility verdict (supported / not supported / uncertain) with the arithmetic
+  it used — 7B at 4-bit versus available RAM/VRAM, Docker needing a binary AND a
+  reachable daemon, CUDA needing nvidia-smi, ffmpeg video needing free disk — and
+  machine_refresh re-probes after the machine changes. A /specs command exposes
+  the card, a section, a refresh and feasibility checks, and a bundled skill
+  teaches the agent to quote measurements instead of guessing. Every probe has a
+  short timeout and fails soft to 'unknown', so an unreadable /proc or a missing
+  tool never breaks a session. Disclosure — read-only local probes only: /proc
+  files, shutil.disk_usage, short-timeout version banners for the configured tools
+  and `docker info` to see whether a daemon answers (it never starts, stops or
+  changes anything); writes one JSON cache under the profile's plugin-data/specs/
+  and nothing else; the card and cache hold capability facts only — no username,
+  hostname, home path, serial number, MAC address, IP address, environment-variable
+  value or file contents — and are scrubbed again before rendering; makes no
+  network calls, reads no credentials and has no telemetry.
+maintainer: okyssta
+tier: community
+category: tools
+requires_hermes: ">=0.22.0"
+version: "1.0.0"
+docs_url: https://github.com/okyssta/hermes-specs#readme
+platforms: []
+capabilities:
+  provides_tools:
+    - machine_specs
+    - machine_can
+    - machine_refresh
+  provides_hooks: []
+  provides_middleware: []
+  requires_env: []

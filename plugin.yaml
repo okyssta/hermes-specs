@@ -1,0 +1,110 @@
+name: specs
+label: Specs
+version: 1.0.0
+manifest_version: 2
+api_version: 1
+license: MIT
+homepage: https://github.com/okyssta/hermes-specs
+author: kyssta
+requires_hermes: ">=0.22.0"
+title: Specs — what this machine can actually do
+description: >
+  Hermes starts every session knowing the real machine instead of an imaginary
+  one. Specs measures this computer once — OS, kernel and architecture, CPU count
+  and model, total and available RAM, GPU and usable VRAM, free disk, the init
+  system and container status, and which developer tools are installed with their
+  versions — then freezes a compact capability card (1200 characters by default)
+  into the system prompt of every new session, so a plan that needs a GPU, a
+  Docker daemon, brew or 32 GB of RAM is checked against the machine before it is
+  written. Three tools carry the detail: machine_specs returns the fact sheet with
+  how each value was obtained, machine_can returns a labelled heuristic verdict
+  (supported / not supported / uncertain) with the arithmetic it used — a 7B model
+  at 4-bit against available RAM, Docker needing a binary AND a reachable daemon,
+  CUDA needing nvidia-smi, ffmpeg video needing free disk — and machine_refresh
+  re-probes after the machine changes. Adds a /specs command for the card, the
+  detail, a refresh and feasibility checks. Disclosure — runs read-only local
+  probes only: platform/system files (/proc/cpuinfo, /proc/meminfo, /proc/1/comm,
+  /proc/1/cgroup, /.dockerenv), shutil.disk_usage and short-timeout version
+  banners for the configured tools, plus `docker info` to see whether a daemon
+  answers (it never starts, stops or changes anything); writes one JSON cache
+  under the profile's plugin-data/specs/ and nothing else; the card and cache hold
+  capability facts only — no username, hostname, home path, serial number, MAC
+  address, IP address, environment-variable value or file contents — and are
+  scrubbed again before rendering; makes no network calls, reads no credentials
+  and has no telemetry.
+tags: [hardware, capability, system-prompt, feasibility, gpu, docker, local, privacy]
+
+provides_tools:
+  - machine_specs
+  - machine_can
+  - machine_refresh
+
+provides_hooks: []
+
+config_schema:
+  enabled:
+    type: bool
+    default: true
+    label: Enabled
+    description: Inject the capability card into new sessions and expose the tools
+  ttl_hours:
+    type: int
+    default: 24
+    label: Cache TTL (hours)
+    description: >
+      How long a measurement is reused before the next call re-probes. 1-720;
+      machine_refresh always re-probes immediately
+  card_max_chars:
+    type: int
+    default: 1200
+    label: System-prompt card budget (characters)
+    description: >
+      Hard cap for the injected card. Core drops an oversized section instead of
+      truncating it, so the renderer is given this same budget. 200-4000
+  probe_timeout_ms:
+    type: int
+    default: 1500
+    label: Per-probe timeout (milliseconds)
+    description: >
+      Each subprocess probe (tool version, nvidia-smi, docker info) gets this
+      long. A probe that times out is recorded as unknown, never raised. 100-10000
+  gpu_probe:
+    type: bool
+    default: true
+    label: Probe the GPU
+    description: >
+      Look for nvidia-smi, rocm-smi, lspci (Linux), system_profiler (macOS) or
+      Win32_VideoController (Windows). Off records the GPU as unknown
+  docker_probe:
+    type: bool
+    default: true
+    label: Check the Docker daemon
+    description: >
+      Run `docker info` to see whether a daemon actually answers. Read-only: no
+      daemon is started. Off records the daemon state as unknown
+  tools:
+    type: list
+    default:
+      - python3
+      - pip
+      - uv
+      - node
+      - npm
+      - git
+      - ffmpeg
+      - curl
+      - jq
+      - sqlite3
+      - tesseract
+      - docker
+      - podman
+      - systemctl
+      - apt
+      - dnf
+      - pacman
+      - brew
+      - winget
+    label: Tools to measure
+    description: >
+      Tool names looked up on PATH and versioned. Names only (no paths); the
+      order is the card's display priority
